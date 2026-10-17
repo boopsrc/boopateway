@@ -25,6 +25,10 @@ func respondError(c *gin.Context, err error) {
 			"status":             invalidCode.Status,
 			"remaining_attempts": invalidCode.RemainingAttempts,
 		})
+	case errors.Is(err, entity.ErrInvalidToken):
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	case errors.Is(err, entity.ErrForbidden):
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 	case errors.Is(err, entity.ErrPersonNotFound), errors.Is(err, entity.ErrTransactionNotFound):
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 	case errors.Is(err, entity.ErrEmailAlreadyExists),

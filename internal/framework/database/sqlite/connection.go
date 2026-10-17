@@ -43,6 +43,21 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
 	created_at   TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
 	PRIMARY KEY (key, scope)
 );
+
+CREATE TABLE IF NOT EXISTS request_logs (
+	id          INTEGER PRIMARY KEY AUTOINCREMENT,
+	created_at  TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+	method      TEXT    NOT NULL,
+	path        TEXT    NOT NULL,
+	route       TEXT    NOT NULL DEFAULT '',
+	query       TEXT    NOT NULL DEFAULT '',
+	status      INTEGER NOT NULL,
+	duration_ms INTEGER NOT NULL,
+	client_ip   TEXT    NOT NULL DEFAULT '',
+	user_agent  TEXT    NOT NULL DEFAULT '',
+	error       TEXT    NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_request_logs_created_at ON request_logs (created_at);
 `
 
 func Open(ctx context.Context, path string) (*sql.DB, error) {

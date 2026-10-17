@@ -3,7 +3,7 @@
 //	client.go                    -> HTTP, autenticação e envio multipart
 //	dto.go                       -> contratos (JSON) da API Boop
 //	register_person.go           -> POST /persons
-//	search_person.go             -> busca de pessoa pela foto
+//	search_person.go             -> POST /identify (busca de pessoa pela foto)
 //	face_recognition_gateway.go  -> adapter que implementa gateway.FaceRecognitionGateway
 package booprecognition
 
@@ -26,7 +26,7 @@ var errNotFound = errors.New("booprecognition: pessoa não encontrada")
 type Config struct {
 	BaseURL    string
 	Token      string
-	SearchPath string // padrão /persons
+	SearchPath string // padrão /identify
 	Timeout    time.Duration
 }
 
@@ -39,7 +39,7 @@ type Client struct {
 
 func NewClient(cfg Config) *Client {
 	if cfg.SearchPath == "" {
-		cfg.SearchPath = personsPath
+		cfg.SearchPath = identifyPath
 	}
 	if cfg.Timeout == 0 {
 		cfg.Timeout = 20 * time.Second
@@ -50,6 +50,20 @@ func NewClient(cfg Config) *Client {
 		searchPath: cfg.SearchPath,
 		http:       &http.Client{Timeout: cfg.Timeout},
 	}
+}
+
+// do executa uma requisição autenticada com o token informado (operações administrativas).
+func (c *Client) do(ctx context.Context, method, path, token string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("booprecognition: %w", err)
+	}
+	return resp, nil
 }
 
 // postImage envia a foto como multipart (campo "image") e decodifica o JSON de resposta em out.
@@ -74,6 +88,9 @@ func (c *Client) postImage(ctx context.Context, path string, img []byte, content
 
 	if resp.StatusCode == http.StatusNotFound {
 		return errNotFound
+	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		return &ImageRejectedError{Detail: readDetail(resp.Body)}
 	}
 	if resp.StatusCode >= 300 {
 		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 512))

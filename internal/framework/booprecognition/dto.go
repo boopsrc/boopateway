@@ -1,6 +1,6 @@
 package booprecognition
 
-// personResponse é o retorno de POST /persons na API Boop.
+// personResponse é o retorno de POST /persons e POST /identify na API Boop.
 type personResponse struct {
 	ID             int64   `json:"id"`
 	Identification int64   `json:"identification"`

@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boopateway Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280; --faint:#9ca3af;
+  --accent:#4f46e5; --accent-soft:#eef2ff; --danger:#dc2626; --danger-soft:#fef2f2; --ok:#059669;
+  --shadow:0 10px 40px rgba(0,0,0,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111318; --bg-soft:#171a21; --border:#262a34; --text:#e5e7eb; --muted:#9ca3af; --faint:#6b7280;
+    --accent:#818cf8; --accent-soft:#1e2140; --danger:#f87171; --danger-soft:#2a1416; --ok:#34d399;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111318; --bg-soft:#171a21; --border:#262a34; --text:#e5e7eb; --muted:#9ca3af; --faint:#6b7280;
+  --accent:#818cf8; --accent-soft:#1e2140; --danger:#f87171; --danger-soft:#2a1416; --ok:#34d399;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Inter,system-ui,sans-serif}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+button{font:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+.topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+.brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#22d3ee)}
+.brand small{font-weight:500;color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.chip{font:500 11.5px "JetBrains Mono",monospace;padding:3px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.chip.ok{color:var(--ok);border-color:currentColor}
+.btn{border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;padding:7px 14px;font-weight:500}
+.btn:hover{background:var(--bg-soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--danger);border-color:var(--border)}
+.btn.danger:hover:not(:disabled){background:var(--danger-soft);border-color:var(--danger)}
+.btn.danger-solid{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* login */
+.login{min-height:calc(100vh - 56px);display:grid;place-items:center;padding:24px 16px}
+.login-card{width:100%;max-width:440px;border:1px solid var(--border);border-radius:14px;padding:28px;background:var(--bg);box-shadow:var(--shadow)}
+.login-card h1{margin:0 0 6px;font-size:22px}
+.login-card p{margin:0 0 20px;color:var(--muted)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+textarea,input{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 11px;background:var(--bg);color:var(--text);font:13px "JetBrains Mono",monospace}
+textarea{min-height:110px;resize:vertical;word-break:break-all}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.error{color:var(--danger);font-size:13px;margin-top:10px;min-height:20px}
+.login-card .btn.primary{width:100%;margin-top:6px;padding:10px}
+
+/* list */
+.content{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+.head{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.head h1{margin:0;font-size:24px}
+.head .sub{color:var(--muted)}
+.head input{max-width:280px;font-family:Inter,sans-serif}
+.notice{border:1px solid var(--border);background:var(--bg-soft);border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--muted);font-size:13px}
+.table-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;padding:12px 14px;border-top:1px solid var(--border);vertical-align:middle}
+th{border-top:none;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;background:var(--bg-soft)}
+tr:hover td{background:var(--bg-soft)}
+.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);font-weight:700}
+.person{display:flex;align-items:center;gap:12px}
+.person .n{font-weight:600}
+.muted{color:var(--muted)}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.pager{display:flex;align-items:center;justify-content:space-between;margin-top:14px;color:var(--muted);font-size:13px}
+.pager .btns{display:flex;gap:8px}
+td.actions{text-align:right;white-space:nowrap}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:14px;max-width:420px;width:100%;padding:24px;box-shadow:var(--shadow)}
+.modal h2{margin:0 0 8px;font-size:18px}
+.modal p{margin:0 0 6px;color:var(--muted)}
+.modal .row{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+.tabs{display:flex;gap:4px;margin-left:16px;align-self:stretch}
+.tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;padding:0 12px}
+.tabs button.active{color:var(--text);border-bottom-color:var(--accent)}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end;margin-bottom:6px}
+.filters input,.filters select{font-family:Inter,sans-serif}
+select{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--bg);color:var(--text);font:13px Inter,sans-serif}
+.filter-actions{display:flex;gap:8px}
+@media (max-width:900px){.filters{grid-template-columns:1fr 1fr}.filter-actions{grid-column:1/-1}}
+@media (max-width:640px){.tabs{margin-left:4px}.tabs button{padding:0 8px}}
+.modal.wide{max-width:860px;max-height:calc(100vh - 32px);overflow:auto}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.modal-head p{margin:0}
+.modal.wide table{min-width:640px}
+.status{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;background:var(--bg-soft);color:var(--muted)}
+.status.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.status.warn{color:#d97706;background:color-mix(in srgb,#d97706 14%,transparent)}
+.status.bad{color:var(--danger);background:var(--danger-soft)}
+
+.method{font:600 11.5px "JetBrains Mono",monospace;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent)}
+.logs-table td{padding:9px 14px;font-size:13px}
+.logs-table tbody tr{cursor:pointer}
+.log-detail td{background:var(--bg-soft);font:12px/1.7 "JetBrains Mono",monospace;color:var(--muted);word-break:break-all;cursor:default}
+.log-detail b{color:var(--text);font-weight:500}
+.check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500;margin:0;white-space:nowrap}
+.check input{width:auto}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13px;z-index:30;box-shadow:var(--shadow)}
+
+@media (max-width:640px){
+  .topbar{padding:0 16px}
+  .brand small,#scopeChip{display:none}
+  .content{padding:20px 16px 40px}
+  .head input{max-width:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="dot"></span>Boopateway <small>Admin</small></div>
+  <nav class="tabs hidden" id="tabs" role="tablist">
+    <button role="tab" data-tab="persons" class="active">Pessoas</button>
+    <button role="tab" data-tab="transactions">Transações</button>
+    <button role="tab" data-tab="logs">Logs</button>
+  </nav>
+  <div class="spacer"></div>
+  <span class="chip hidden" id="scopeChip"></span>
+  <button class="btn hidden" id="logoutBtn">Sair</button>
+</header>
+
+<section class="login" id="loginView">
+  <form class="login-card" id="loginForm">
+    <h1>Entrar</h1>
+    <p>Informe o token da API de reconhecimento facial. Ele é validado no serviço antes de liberar o acesso.</p>
+    <label for="token">Token</label>
+    <textarea id="token" placeholder="eyJhbGciOi..." autocomplete="off" spellcheck="false" required></textarea>
+    <div class="error" id="loginError"></div>
+    <button class="btn primary" type="submit" id="loginBtn">Entrar</button>
+  </form>
+</section>
+
+<section class="content hidden" id="listView">
+  <div class="head">
+    <div>
+      <h1>Pessoas</h1>
+      <div class="sub" id="totalLabel"></div>
+    </div>
+    <div class="spacer"></div>
+    <input id="filter" placeholder="Filtrar nesta página…" aria-label="Filtrar">
+    <button class="btn" id="reloadBtn">Atualizar</button>
+  </div>
+  <div class="notice hidden" id="readOnlyNotice">Este token não tem o scope <span class="mono">persons:delete</span>: a lista está disponível só para leitura.</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pessoa</th><th>ID</th><th>ID no parceiro</th><th>Cadastro</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span id="pageLabel"></span>
+    <div class="btns"><button class="btn" id="prevBtn">Anterior</button><button class="btn" id="nextBtn">Próxima</button></div>
+  </div>
+</section>
+
+<section class="content hidden" id="txView">
+  <div class="head">
+    <div>
+      <h1>Transações</h1>
+      <div class="sub" id="txTotal"></div>
+    </div>
+  </div>
+  <form class="filters" id="txForm">
+    <div><label for="fName">Nome</label><input id="fName" placeholder="Ana"></div>
+    <div><label for="fEmail">E-mail</label><input id="fEmail" placeholder="ana@"></div>
+    <div><label for="fAmount">Valor (R$)</label><input id="fAmount" inputmode="decimal" placeholder="19,90"></div>
+    <div><label for="fStatus">Status</label>
+      <select id="fStatus">
+        <option value="">Todos</option>
+        <option value="pending_confirmation">Aguardando confirmação</option>
+        <option value="confirmed">Confirmada</option>
+        <option value="cancel_notfound">Cancelada: não encontrada</option>
+        <option value="cancel_invalid_code">Cancelada: código inválido</option>
+        <option value="cancel_person_deleted">Cancelada: pessoa excluída</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn primary" type="submit">Buscar</button>
+      <button class="btn" type="button" id="txClear">Limpar</button>
+    </div>
+  </form>
+  <div class="error" id="txError"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Transação</th><th>Pessoa</th><th>Valor</th><th>Status</th><th>Tentativas</th><th>Data</th></tr></thead>
+      <tbody id="txRows"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span id="txPage"></span>
+    <div class="btns"><button class="btn" id="txPrev">Anterior</button><button class="btn" id="txNext">Próxima</button></div>
+  </div>
+</section>
+
+<section class="content hidden" id="logsView">
+  <div class="head">
+    <div>
+      <h1>Logs de requisições</h1>
+      <div class="sub" id="logTotal"></div>
+    </div>
+    <div class="spacer"></div>
+    <label class="check"><input type="checkbox" id="logAuto"> Atualizar a cada 5s</label>
+    <button class="btn" id="logReload">Atualizar</button>
+  </div>
+  <form class="filters" id="logForm">
+    <div><label for="lMethod">Método</label>
+      <select id="lMethod">
+        <option value="">Todos</option>
+        <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+      </select>
+    </div>
+    <div><label for="lPath">Rota contém</label><input id="lPath" placeholder="/payments"></div>
+    <div><label for="lStatus">Status</label>
+      <select id="lStatus">
+        <option value="">Todos</option>
+        <option value="2xx">2xx: sucesso</option>
+        <option value="3xx">3xx: redirecionamento</option>
+        <option value="4xx">4xx: erro do cliente</option>
+        <option value="5xx">5xx: erro do servidor</option>
+      </select>
+    </div>
+    <div><label for="lFrom">A partir de</label><input id="lFrom" type="datetime-local"></div>
+    <div class="filter-actions">
+      <button class="btn primary" type="submit">Buscar</button>
+      <button class="btn" type="button" id="logClear">Limpar</button>
+    </div>
+  </form>
+  <div class="error" id="logError"></div>
+  <div class="table-wrap">
+    <table class="logs-table">
+      <thead><tr><th>Data</th><th>Método</th><th>Rota</th><th>Status</th><th>Duração</th><th>IP</th><th>Erro</th></tr></thead>
+      <tbody id="logRows"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span id="logPage"></span>
+    <div class="btns"><button class="btn" id="logPrev">Anterior</button><button class="btn" id="logNext">Próxima</button></div>
+  </div>
+</section>
+
+<div class="backdrop hidden" id="confirmModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h2 id="confirmTitle">Excluir pessoa?</h2>
+    <p id="confirmText"></p>
+    <p>Ela será removida do reconhecimento facial e da base. As transações continuam no histórico; as pendentes serão canceladas.</p>
+    <div class="error" id="confirmError"></div>
+    <div class="row">
+      <button class="btn" id="cancelBtn">Cancelar</button>
+      <button class="btn danger-solid" id="confirmBtn">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop hidden" id="histModal">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+    <div class="modal-head">
+      <div><h2 id="histTitle">Histórico</h2><p id="histSummary"></p></div>
+      <button class="btn" id="histClose" aria-label="Fechar">Fechar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Transação</th><th>Valor</th><th>Status</th><th>Tentativas</th><th>Data</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span id="histPage"></span>
+      <div class="btns"><button class="btn" id="histPrev">Anterior</button><button class="btn" id="histNext">Próxima</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LIMIT = 20;
+const state = { token: null, canDelete: false, page: 1, total: 0, items: [], pending: null, blobs: [] };
+
+function store(k, v){ try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} }
+function load(k){ try { return sessionStorage.getItem(k); } catch { return null; } }
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(msg){ const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.append(t); setTimeout(() => t.remove(), 2600); }
+
+async function api(path, opts = {}){
+  const res = await fetch("/api" + path, { ...opts, headers: { ...(opts.headers||{}), Authorization: "Bearer " + state.token } });
+  if (res.status === 401) { logout("Token inválido ou expirado. Entre novamente."); throw new Error("401"); }
+  return res;
+}
+async function errorOf(res){ try { return (await res.json()).error || res.statusText; } catch { return res.statusText; } }
+
+/* ---------- session ---------- */
+async function login(token){
+  state.token = token;
+  const res = await fetch("/api/admin/session", { headers: { Authorization: "Bearer " + token } });
+  if (!res.ok) throw new Error(res.status === 401 ? "Token inválido." : await errorOf(res));
+  const s = await res.json();
+  state.canDelete = s.can_delete;
+  store("token", token);
+  $("#scopeChip").textContent = s.can_delete ? "leitura + exclusão" : "somente leitura";
+  $("#scopeChip").classList.toggle("ok", s.can_delete);
+  $("#readOnlyNotice").classList.toggle("hidden", s.can_delete);
+  show(true);
+  state.page = 1;
+  await loadPage();
+}
+
+function logout(message){
+  state.token = null; store("token", null);
+  freeBlobs();
+  tx.loaded = false; tx.filter = {}; tx.page = 1; $("#txForm").reset();
+  logs.items = []; logs.filter = {}; logs.page = 1; logs.open.clear(); $("#logForm").reset();
+  currentTab = "persons";
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === "persons"));
+  show(false);
+  $("#loginError").textContent = message || "";
+  $("#token").value = "";
+}
+
+let currentTab = "persons";
+function show(logged){
+  $("#loginView").classList.toggle("hidden", logged);
+  $("#tabs").classList.toggle("hidden", !logged);
+  $("#logoutBtn").classList.toggle("hidden", !logged);
+  $("#scopeChip").classList.toggle("hidden", !logged);
+  $("#listView").classList.toggle("hidden", !logged || currentTab !== "persons");
+  $("#txView").classList.toggle("hidden", !logged || currentTab !== "transactions");
+  $("#logsView").classList.toggle("hidden", !logged || currentTab !== "logs");
+  setLogAuto(logged && currentTab === "logs" && $("#logAuto").checked);
+}
+function selectTab(tab){
+  currentTab = tab;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  show(true);
+  if (tab === "transactions" && !tx.loaded) searchTx();
+  if (tab === "logs") loadLogs();
+}
+
+/* ---------- logs tab ---------- */
+const logs = { page: 1, filter: {}, items: [], open: new Set(), timer: null };
+
+function statusKind(s){ return s >= 500 ? "bad" : s >= 400 ? "warn" : s >= 200 && s < 300 ? "ok" : ""; }
+
+async function loadLogs(){
+  const q = new URLSearchParams({ page: logs.page, limit: LIMIT });
+  Object.entries(logs.filter).forEach(([k, v]) => { if (v) q.set(k, v); });
+  $("#logError").textContent = "";
+  if (!logs.items.length) $("#logRows").innerHTML = `<tr><td colspan="7" class="empty">Carregando…</td></tr>`;
+  try {
+    const res = await api(`/admin/logs?${q}`);
+    if (!res.ok) { $("#logError").textContent = await errorOf(res); $("#logRows").innerHTML = ""; return; }
+    const data = await res.json();
+    logs.items = data.items;
+    const pages = Math.max(1, Math.ceil(data.total / LIMIT));
+    $("#logTotal").textContent = `${data.total} ${data.total === 1 ? "requisição registrada" : "requisições registradas"}`;
+    $("#logPage").textContent = `Página ${data.page} de ${pages}`;
+    $("#logPrev").disabled = data.page <= 1;
+    $("#logNext").disabled = data.page >= pages;
+    renderLogs();
+  } catch {}
+}
+
+function renderLogs(){
+  if (!logs.items.length) { $("#logRows").innerHTML = `<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>`; return; }
+  $("#logRows").innerHTML = logs.items.map(l => {
+    const row = `<tr data-log="${l.id}">
+      <td class="muted mono">${new Date(l.created_at).toLocaleString("pt-BR")}</td>
+      <td><span class="method">${esc(l.method)}</span></td>
+      <td class="mono">${esc(l.path)}${l.query ? `<span class="muted">?${esc(l.query)}</span>` : ""}</td>
+      <td><span class="status ${statusKind(l.status)}">${l.status}</span></td>
+      <td class="mono">${l.duration_ms} ms</td>
+      <td class="mono muted">${esc(l.client_ip)}</td>
+      <td>${l.error ? esc(l.error) : '<span class="muted">—</span>'}</td></tr>`;
+    if (!logs.open.has(l.id)) return row;
+    return row + `<tr class="log-detail"><td colspan="7">
+      <div><b>ID</b> ${l.id} · <b>Data</b> ${esc(l.created_at)}</div>
+      <div><b>Rota</b> ${esc(l.route || "(nenhuma rota encontrada)")}</div>
+      <div><b>URL</b> ${esc(l.method)} ${esc(l.path)}${l.query ? "?" + esc(l.query) : ""}</div>
+      <div><b>User-Agent</b> ${esc(l.user_agent || "—")}</div>
+      ${l.error ? `<div><b>Erro</b> ${esc(l.error)}</div>` : ""}</td></tr>`;
+  }).join("");
+}
+
+function setLogAuto(on){
+  clearInterval(logs.timer); logs.timer = null;
+  if (on) logs.timer = setInterval(loadLogs, 5000);
+}
+
+$("#logForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const from = $("#lFrom").value;
+  logs.filter = { method: $("#lMethod").value, path: $("#lPath").value.trim(), status: $("#lStatus").value,
+    from: from ? new Date(from).toISOString() : "" };
+  logs.page = 1; loadLogs();
+});
+$("#logClear").addEventListener("click", () => { $("#logForm").reset(); logs.filter = {}; logs.page = 1; loadLogs(); });
+$("#logPrev").addEventListener("click", () => { logs.page--; loadLogs(); });
+$("#logNext").addEventListener("click", () => { logs.page++; loadLogs(); });
+$("#logReload").addEventListener("click", loadLogs);
+$("#logAuto").addEventListener("change", e => setLogAuto(e.target.checked));
+$("#logRows").addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-log]"); if (!tr) return;
+  const id = Number(tr.dataset.log);
+  logs.open.has(id) ? logs.open.delete(id) : logs.open.add(id);
+  renderLogs();
+});
+
+/* ---------- transactions tab ---------- */
+const tx = { page: 1, loaded: false, filter: {} };
+
+function parseAmount(v){
+  v = v.trim().replace(/^R\$\s*/, "");
+  if (!v) return null;
+  v = v.includes(",") ? v.replace(/\./g, "").replace(",", ".") : v;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : NaN;
+}
+
+async function searchTx(){
+  const q = new URLSearchParams({ page: tx.page, limit: LIMIT });
+  Object.entries(tx.filter).forEach(([k, v]) => { if (v !== "" && v != null) q.set(k, v); });
+  $("#txError").textContent = "";
+  $("#txRows").innerHTML = `<tr><td colspan="6" class="empty">Carregando…</td></tr>`;
+  try {
+    const res = await api(`/admin/transactions?${q}`);
+    if (!res.ok) { $("#txError").textContent = await errorOf(res); $("#txRows").innerHTML = ""; return; }
+    const data = await res.json();
+    tx.loaded = true;
+    const pages = Math.max(1, Math.ceil(data.total / LIMIT));
+    $("#txTotal").textContent = `${data.total} ${data.total === 1 ? "transação encontrada" : "transações encontradas"}`;
+    $("#txPage").textContent = `Página ${data.page} de ${pages}`;
+    $("#txPrev").disabled = data.page <= 1;
+    $("#txNext").disabled = data.page >= pages;
+    $("#txRows").innerHTML = data.items.length ? data.items.map(t => {
+      const [label, kind] = STATUS[t.status] || [t.status, ""];
+      const person = t.person_name
+        ? `<div class="n">${esc(t.person_name)}</div><div class="muted">${esc(t.person_email)}</div>`
+        : `<span class="muted">${t.partner_person_id ? "Pessoa excluída" : "Não identificada"}</span>`;
+      return `<tr>
+        <td class="mono">${esc(t.transaction_id)}</td>
+        <td>${person}</td>
+        <td>${brl.format(t.amount_cents / 100)}</td>
+        <td><span class="status ${kind}">${esc(label)}</span></td>
+        <td class="mono">${t.attempts}</td>
+        <td class="muted">${new Date(t.created_at).toLocaleString("pt-BR")}</td></tr>`;
+    }).join("") : `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
+  } catch {}
+}
+
+$("#tabs").addEventListener("click", e => { if (e.target.dataset.tab) selectTab(e.target.dataset.tab); });
+$("#txForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const amount = parseAmount($("#fAmount").value);
+  if (Number.isNaN(amount)) { $("#txError").textContent = "Valor inválido. Use, por exemplo, 19,90."; return; }
+  tx.filter = { name: $("#fName").value.trim(), email: $("#fEmail").value.trim(), amount_cents: amount, status: $("#fStatus").value };
+  tx.page = 1; searchTx();
+});
+$("#txClear").addEventListener("click", () => { $("#txForm").reset(); tx.filter = {}; tx.page = 1; searchTx(); });
+$("#txPrev").addEventListener("click", () => { tx.page--; searchTx(); });
+$("#txNext").addEventListener("click", () => { tx.page++; searchTx(); });
+
+/* ---------- list ---------- */
+async function loadPage(){
+  const res = await api(`/admin/persons?page=${state.page}&limit=${LIMIT}`);
+  if (!res.ok) { toast(await errorOf(res)); return; }
+  const data = await res.json();
+  state.items = data.items; state.total = data.total;
+  if (!state.items.length && state.page > 1) { state.page--; return loadPage(); }
+  render();
+}
+
+function render(){
+  freeBlobs();
+  const q = $("#filter").value.trim().toLowerCase();
+  const items = state.items.filter(p => !q || (p.name + " " + p.email + " " + p.id + " " + p.partner_person_id).toLowerCase().includes(q));
+  const pages = Math.max(1, Math.ceil(state.total / LIMIT));
+  $("#totalLabel").textContent = `${state.total} ${state.total === 1 ? "pessoa cadastrada" : "pessoas cadastradas"}`;
+  $("#pageLabel").textContent = `Página ${state.page} de ${pages}`;
+  $("#prevBtn").disabled = state.page <= 1;
+  $("#nextBtn").disabled = state.page >= pages;
+
+  if (!items.length) {
+    $("#rows").innerHTML = `<tr><td colspan="5" class="empty">${state.total ? "Nenhum resultado para o filtro." : "Nenhuma pessoa cadastrada."}</td></tr>`;
+    return;
+  }
+  $("#rows").innerHTML = items.map(p => `
+    <tr data-id="${p.id}">
+      <td><div class="person"><div class="avatar" data-img="${p.id}">${esc(p.name.trim().charAt(0).toUpperCase())}</div>
+        <div><div class="n">${esc(p.name)}</div><div class="muted">${esc(p.email)}</div></div></div></td>
+      <td class="mono">${p.id}</td>
+      <td class="mono">${p.partner_person_id}</td>
+      <td class="muted">${new Date(p.created_at).toLocaleString("pt-BR")}</td>
+      <td class="actions"><button class="btn" data-hist="${p.id}">Histórico</button> <button class="btn danger" data-del="${p.id}" ${state.canDelete ? "" : 'disabled title="Token sem permissão persons:delete"'}>Excluir</button></td>
+    </tr>`).join("");
+  items.forEach(p => loadAvatar(p.id));
+}
+
+async function loadAvatar(id){
+  try {
+    const res = await api(`/admin/persons/${id}/image`);
+    if (!res.ok) return;
+    const url = URL.createObjectURL(await res.blob());
+    state.blobs.push(url);
+    const el = document.querySelector(`[data-img="${id}"]`);
+    if (el) el.outerHTML = `<img class="avatar" src="${url}" alt="">`;
+  } catch {}
+}
+function freeBlobs(){ state.blobs.forEach(u => URL.revokeObjectURL(u)); state.blobs = []; }
+
+/* ---------- delete ---------- */
+function askDelete(id){
+  const p = state.items.find(x => x.id === id); if (!p) return;
+  state.pending = p;
+  $("#confirmText").innerHTML = `<b>${esc(p.name)}</b> (${esc(p.email)}), ID ${p.id}.`;
+  $("#confirmError").textContent = "";
+  $("#confirmModal").classList.remove("hidden");
+  $("#cancelBtn").focus();
+}
+function closeModal(){ $("#confirmModal").classList.add("hidden"); state.pending = null; }
+
+async function confirmDelete(){
+  const p = state.pending; if (!p) return;
+  const btn = $("#confirmBtn"); btn.disabled = true; btn.textContent = "Excluindo…";
+  try {
+    const res = await api(`/admin/persons/${p.id}`, { method: "DELETE" });
+    if (res.status === 204 || res.status === 404) {
+      closeModal(); toast(`${p.name} excluída.`); await loadPage();
+    } else {
+      $("#confirmError").textContent = await errorOf(res);
+    }
+  } catch {} finally { btn.disabled = false; btn.textContent = "Excluir"; }
+}
+
+/* ---------- transaction history ---------- */
+const STATUS = {
+  pending_confirmation: ["Aguardando confirmação", "warn"],
+  confirmed: ["Confirmada", "ok"],
+  cancel_notfound: ["Cancelada: não encontrada", "bad"],
+  cancel_invalid_code: ["Cancelada: código inválido", "bad"],
+  cancel_person_deleted: ["Cancelada: pessoa excluída", "bad"],
+};
+const hist = { person: null, page: 1 };
+const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+function openHistory(id){
+  hist.person = state.items.find(x => x.id === id); if (!hist.person) return;
+  hist.page = 1;
+  $("#histTitle").textContent = `Histórico de ${hist.person.name}`;
+  $("#histModal").classList.remove("hidden");
+  loadHistory();
+}
+function closeHistory(){ $("#histModal").classList.add("hidden"); hist.person = null; }
+
+async function loadHistory(){
+  const p = hist.person; if (!p) return;
+  $("#histBody").innerHTML = `<tr><td colspan="5" class="empty">Carregando…</td></tr>`;
+  try {
+    const res = await api(`/admin/persons/${p.id}/transactions?page=${hist.page}&limit=${LIMIT}`);
+    if (!res.ok) { $("#histBody").innerHTML = `<tr><td colspan="5" class="empty">${esc(await errorOf(res))}</td></tr>`; return; }
+    const data = await res.json();
+    const pages = Math.max(1, Math.ceil(data.total / LIMIT));
+    const confirmed = data.items.filter(t => t.status === "confirmed").reduce((s, t) => s + t.amount_cents, 0);
+    $("#histSummary").textContent = `${data.total} ${data.total === 1 ? "transação" : "transações"} · confirmado nesta página: ${brl.format(confirmed / 100)}`;
+    $("#histPage").textContent = `Página ${data.page} de ${pages}`;
+    $("#histPrev").disabled = data.page <= 1;
+    $("#histNext").disabled = data.page >= pages;
+    $("#histBody").innerHTML = data.items.length ? data.items.map(t => {
+      const [label, kind] = STATUS[t.status] || [t.status, ""];
+      return `<tr>
+        <td class="mono">${esc(t.transaction_id)}</td>
+        <td>${brl.format(t.amount_cents / 100)}</td>
+        <td><span class="status ${kind}">${esc(label)}</span></td>
+        <td class="mono">${t.attempts}</td>
+        <td class="muted">${new Date(t.created_at).toLocaleString("pt-BR")}</td></tr>`;
+    }).join("") : `<tr><td colspan="5" class="empty">Nenhuma transação para esta pessoa.</td></tr>`;
+  } catch {}
+}
+
+/* ---------- events ---------- */
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = $("#loginBtn"); btn.disabled = true; btn.textContent = "Validando…";
+  $("#loginError").textContent = "";
+  try { await login($("#token").value.trim()); }
+  catch (err) { state.token = null; $("#loginError").textContent = err.message === "401" ? "" : err.message; }
+  finally { btn.disabled = false; btn.textContent = "Entrar"; }
+});
+$("#logoutBtn").addEventListener("click", () => logout());
+$("#reloadBtn").addEventListener("click", loadPage);
+$("#filter").addEventListener("input", render);
+$("#prevBtn").addEventListener("click", () => { state.page--; loadPage(); });
+$("#nextBtn").addEventListener("click", () => { state.page++; loadPage(); });
+$("#rows").addEventListener("click", e => {
+  if (e.target.dataset.del) askDelete(Number(e.target.dataset.del));
+  if (e.target.dataset.hist) openHistory(Number(e.target.dataset.hist));
+});
+$("#histClose").addEventListener("click", closeHistory);
+$("#histModal").addEventListener("click", e => { if (e.target.id === "histModal") closeHistory(); });
+$("#histPrev").addEventListener("click", () => { hist.page--; loadHistory(); });
+$("#histNext").addEventListener("click", () => { hist.page++; loadHistory(); });
+$("#cancelBtn").addEventListener("click", closeModal);
+$("#confirmBtn").addEventListener("click", confirmDelete);
+$("#confirmModal").addEventListener("click", e => { if (e.target.id === "confirmModal") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); closeHistory(); } });
+
+const saved = load("token");
+if (saved) login(saved).catch(() => logout("Sessão expirada. Entre novamente."));
+</script>
+</body>
+</html>

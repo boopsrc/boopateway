@@ -1,0 +1,34 @@
+services:
+  api:
+    build: .
+    image: boopateway:latest
+    container_name: boopateway
+    restart: unless-stopped
+    ports:
+      - "31800:8080"
+    environment:
+      # booprecognition roda no host, porta 31900
+      BOOP_BASE_URL: http://host.docker.internal:31900
+      BOOP_TOKEN: ${BOOP_TOKEN:?defina BOOP_TOKEN no arquivo .env}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - boopateway-data:/data
+
+  # Portal administrativo: pessoas, transações e logs de requisições da API.
+  # Login com o token do booprecognition.
+  portal:
+    image: boopateway:latest
+    container_name: boopateway-portal
+    restart: unless-stopped
+    entrypoint: ["/portal"]
+    depends_on:
+      - api
+    ports:
+      - "31801:31801"
+    environment:
+      PORTAL_ADDR: ":31801"
+      API_URL: http://api:8080
+
+volumes:
+  boopateway-data:

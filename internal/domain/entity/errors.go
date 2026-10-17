@@ -12,6 +12,8 @@ var (
 	ErrTransactionNotFound     = errors.New("transação não encontrada")
 	ErrTransactionNotPending   = errors.New("transação não está pendente de confirmação")
 	ErrPartnerUnavailable      = errors.New("falha ao comunicar com o serviço de reconhecimento facial")
+	ErrInvalidToken            = errors.New("token inválido")
+	ErrForbidden               = errors.New("token sem permissão para esta operação")
 )
 
 // ValidationError representa entrada inválida do cliente.

@@ -48,15 +48,18 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	recognition := booprecognition.NewFaceRecognitionGateway(booprecognition.NewClient(booprecognition.Config{
+	boopClient := booprecognition.NewClient(booprecognition.Config{
 		BaseURL:    cfg.BoopBaseURL,
 		Token:      cfg.BoopToken,
 		SearchPath: cfg.BoopSearchPath,
-	}))
+	})
+	recognition := booprecognition.NewFaceRecognitionGateway(boopClient)
+	adminRecognition := booprecognition.NewAdminRecognitionGateway(boopClient)
 	hasher := security.BcryptCodeHasher{}
 	persons := sqlite.NewPersonRepository(db)
 	transactions := sqlite.NewTransactionRepository(db)
 	idempotency := sqlite.NewIdempotencyRepository(db)
+	requestLogs := sqlite.NewRequestLogRepository(db)
 
 	// use cases
 	createPerson := usecase.NewCreatePersonUseCase(persons, recognition, images, hasher)
@@ -64,12 +67,20 @@ func run() error {
 	createPayment := usecase.NewCreatePaymentUseCase(persons, transactions, recognition)
 	getPayment := usecase.NewGetPaymentUseCase(transactions)
 	confirmPayment := usecase.NewConfirmPaymentUseCase(persons, transactions, hasher)
+	validateAdmin := usecase.NewValidateAdminTokenUseCase(adminRecognition)
+	listPersons := usecase.NewListPersonsUseCase(validateAdmin, persons)
+	personImage := usecase.NewGetPersonImageUseCase(validateAdmin, persons)
+	deletePerson := usecase.NewDeletePersonUseCase(validateAdmin, persons, adminRecognition, images)
+	personTransactions := usecase.NewListPersonTransactionsUseCase(validateAdmin, persons, transactions)
+	searchTransactions := usecase.NewSearchTransactionsUseCase(validateAdmin, transactions)
+	listRequestLogs := usecase.NewListRequestLogsUseCase(validateAdmin, requestLogs)
 
 	// http
 	router := httpserver.NewRouter(httpserver.Handlers{
 		Person:  handler.NewPersonHandler(createPerson, getPerson),
 		Payment: handler.NewPaymentHandler(createPayment, getPayment, confirmPayment),
-	}, idempotency)
+		Admin:   handler.NewAdminHandler(validateAdmin, listPersons, personImage, deletePerson, personTransactions, searchTransactions, listRequestLogs),
+	}, idempotency, requestLogs)
 
 	srv := &http.Server{Addr: cfg.Addr, Handler: router, ReadHeaderTimeout: 10 * time.Second}
 	go func() {

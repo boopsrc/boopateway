@@ -22,7 +22,7 @@ func Load() (Config, error) {
 		ImageDir:       env("IMAGE_DIR", filepath.Join("data", "images")),
 		BoopBaseURL:    env("BOOP_BASE_URL", "http://localhost:8000"),
 		BoopToken:      os.Getenv("BOOP_TOKEN"),
-		BoopSearchPath: env("BOOP_SEARCH_PATH", "/persons"),
+		BoopSearchPath: env("BOOP_SEARCH_PATH", "/identify"),
 	}
 	if cfg.BoopToken == "" {
 		return cfg, errors.New("BOOP_TOKEN é obrigatório")

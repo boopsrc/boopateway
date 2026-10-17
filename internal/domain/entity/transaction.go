@@ -7,6 +7,7 @@ const (
 	StatusConfirmed           TransactionStatus = "confirmed"
 	StatusCancelNotFound      TransactionStatus = "cancel_notfound"
 	StatusCancelInvalidCode   TransactionStatus = "cancel_invalid_code"
+	StatusCancelPersonDeleted TransactionStatus = "cancel_person_deleted"
 
 	MaxConfirmAttempts = 3
 	MaxAmountCents     = 100_000_000_00

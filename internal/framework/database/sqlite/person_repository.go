@@ -47,6 +47,56 @@ func (r *PersonRepository) EmailExists(ctx context.Context, email string) (bool,
 	return n > 0, err
 }
 
+func (r *PersonRepository) List(ctx context.Context, limit, offset int) ([]entity.Person, int, error) {
+	var total int
+	if err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM persons`).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT `+personCols+` FROM persons ORDER BY id DESC LIMIT ? OFFSET ?`, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	items := []entity.Person{}
+	for rows.Next() {
+		var p entity.Person
+		if err := rows.Scan(&p.ID, &p.Name, &p.Email, &p.PartnerPersonID, &p.ImagePath, &p.CodeHash, &p.CreatedAt); err != nil {
+			return nil, 0, err
+		}
+		items = append(items, p)
+	}
+	return items, total, rows.Err()
+}
+
+func (r *PersonRepository) Delete(ctx context.Context, id int64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE transactions SET status = ?, updated_at = `+nowExpr+`
+		 WHERE person_id = ? AND status = ?`,
+		entity.StatusCancelPersonDeleted, id, entity.StatusPendingConfirmation); err != nil {
+		return err
+	}
+	// Mantém partner_person_id como histórico; só desfaz o vínculo com a pessoa removida.
+	if _, err := tx.ExecContext(ctx, `UPDATE transactions SET person_id = NULL WHERE person_id = ?`, id); err != nil {
+		return err
+	}
+	res, err := tx.ExecContext(ctx, `DELETE FROM persons WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return entity.ErrPersonNotFound
+	}
+	return tx.Commit()
+}
+
 func (r *PersonRepository) scan(row *sql.Row) (*entity.Person, error) {
 	var p entity.Person
 	err := row.Scan(&p.ID, &p.Name, &p.Email, &p.PartnerPersonID, &p.ImagePath, &p.CodeHash, &p.CreatedAt)

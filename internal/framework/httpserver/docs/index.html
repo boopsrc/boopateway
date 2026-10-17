@@ -51,7 +51,7 @@ a{color:var(--accent);text-decoration:none}
 .sidebar a:hover{background:var(--bg-soft)}
 .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .badge{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:4px;text-transform:uppercase}
-.badge.get{color:var(--get);background:var(--get-bg)} .badge.post{color:var(--post);background:var(--post-bg)}
+.badge.get{color:var(--get);background:var(--get-bg)} .badge.post{color:var(--post);background:var(--post-bg)} .badge.delete{color:#dc2626;background:#fde8e8}
 
 main{padding:36px 44px 80px;max-width:820px}
 .crumb{color:var(--muted);font-size:13px;margin-bottom:6px}
@@ -230,8 +230,43 @@ const ENDPOINTS = [
       {code:422, desc:"Código inválido", body:{error:"código inválido",status:"pending_confirmation",remaining_attempts:2}},
     ],
   },
+  {
+    id: "admin-session", group: "Admin", title: "Validate token", method: "GET", path: "/admin/session",
+    desc: ["Valida o token da API booprecognition e informa os scopes. Usado no login do portal administrativo (porta 31801)."],
+    callout: "Rotas <code>/admin/*</code> usam o token do booprecognition no header <code>Authorization</code>; ele é validado no booprecognition a cada chamada.",
+    headers: [authHeader()],
+    responses: [
+      {code:200, desc:"Token válido", body:{scopes:["identify","persons:delete","persons:write"],can_delete:true}},
+      {code:401, desc:"Token inválido", body:{error:"token inválido"}},
+    ],
+  },
+  {
+    id: "admin-list-persons", group: "Admin", title: "List persons", method: "GET", path: "/admin/persons",
+    desc: ["Lista as pessoas cadastradas, da mais recente para a mais antiga. Query <code>page</code> (padrão 1) e <code>limit</code> (padrão 20, máx. 100)."],
+    headers: [authHeader()],
+    responses: [
+      {code:200, desc:"OK", body:{items:[{id:1,name:"Ana Souza",email:"ana@example.com",partner_person_id:795820565,created_at:"2026-10-17T21:52:35.804Z"}],total:1,page:1,limit:20}},
+      {code:401, desc:"Token inválido", body:{error:"token inválido"}},
+    ],
+  },
+  {
+    id: "admin-delete-person", group: "Admin", title: "Delete person", method: "DELETE", path: "/admin/persons/{id}",
+    desc: [
+      "Exclui a pessoa no booprecognition, na base e apaga a foto. Exige o scope <code>persons:delete</code>.",
+      "O histórico de transações é mantido; pagamentos pendentes da pessoa viram <code>cancel_person_deleted</code>."
+    ],
+    headers: [authHeader()],
+    pathParams: [{name:"id", type:"integer", required:true, desc:"ID da pessoa no Boopateway.", example:"1"}],
+    responses: [
+      {code:204, desc:"Excluída (sem body)", body:null},
+      {code:401, desc:"Token inválido", body:{error:"token inválido"}},
+      {code:403, desc:"Token sem persons:delete", body:{error:"token sem permissão para esta operação"}},
+      {code:404, desc:"Pessoa não encontrada", body:{error:"pessoa não encontrada"}},
+    ],
+  },
 ];
 
+function authHeader(){ return {name:"Authorization", type:"string", required:true, desc:"<code>Bearer &lt;token do booprecognition&gt;</code>.", example:"Bearer <token>"}; }
 function idemHeader(){ return {name:"Idempotency-Key", type:"string", required:true, desc:"Chave única por operação (ex.: UUID). Válida por 24h.", example:"auto"}; }
 
 const LANGS = ["cURL","Go","Node","Python"];
@@ -288,6 +323,7 @@ function renderOverview(){
         <tr><td><code>confirmed</code></td><td>Pagamento confirmado</td></tr>
         <tr><td><code>cancel_notfound</code></td><td>Pessoa não reconhecida</td></tr>
         <tr><td><code>cancel_invalid_code</code></td><td>3 códigos incorretos</td></tr>
+        <tr><td><code>cancel_person_deleted</code></td><td>Pessoa excluída no portal com o pagamento pendente</td></tr>
       </table>
     </div>
     <div class="section"><h3>Endpoints</h3>
