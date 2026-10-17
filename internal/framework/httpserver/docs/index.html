@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boopateway API Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f7f8fa; --border:#e5e7eb; --text:#1f2937; --muted:#6b7280; --faint:#9ca3af;
+  --accent:#4f46e5; --accent-soft:#eef2ff;
+  --code-bg:#1e1f2b; --code-head:#16171f; --code-text:#e5e7eb; --code-muted:#8b8fa3;
+  --get:#0f9d58; --get-bg:#e6f6ee; --post:#2563eb; --post-bg:#e8f0fe;
+  --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+  --req:#e11d48;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111318; --bg-soft:#171a21; --border:#262a34; --text:#e5e7eb; --muted:#9ca3af; --faint:#6b7280;
+    --accent:#818cf8; --accent-soft:#1e2140; --get-bg:#0f2a1d; --post-bg:#12213f; --get:#34d399; --post:#60a5fa;
+    --code-bg:#0b0d12; --code-head:#07080c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111318; --bg-soft:#171a21; --border:#262a34; --text:#e5e7eb; --muted:#9ca3af; --faint:#6b7280;
+  --accent:#818cf8; --accent-soft:#1e2140; --get-bg:#0f2a1d; --post-bg:#12213f; --get:#34d399; --post:#60a5fa;
+  --code-bg:#0b0d12; --code-head:#07080c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 Inter,system-ui,sans-serif}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+a{color:var(--accent);text-decoration:none}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:16px;padding:0 20px;
+  border-bottom:1px solid var(--border);background:var(--bg)}
+.brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#22d3ee)}
+.topbar nav{display:flex;gap:18px;margin-left:16px;color:var(--muted);font-weight:500}
+.topbar nav .active{color:var(--text);border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:-18px}
+.topbar .spacer{flex:1}
+.search{border:1px solid var(--border);background:var(--bg-soft);border-radius:8px;padding:6px 10px;color:var(--text);width:220px;font:inherit}
+.menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font:inherit}
+
+/* layout */
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr) 440px;min-height:calc(100vh - 56px)}
+.sidebar{border-right:1px solid var(--border);padding:18px 12px;position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto;background:var(--bg)}
+.sidebar h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:18px 10px 6px}
+.sidebar a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:6px;color:var(--text);font-size:13.5px}
+.sidebar a:hover{background:var(--bg-soft)}
+.sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.badge{font:600 10px/1 "JetBrains Mono",monospace;padding:3px 5px;border-radius:4px;text-transform:uppercase}
+.badge.get{color:var(--get);background:var(--get-bg)} .badge.post{color:var(--post);background:var(--post-bg)}
+
+main{padding:36px 44px 80px;max-width:820px}
+.crumb{color:var(--muted);font-size:13px;margin-bottom:6px}
+h1{font-size:30px;margin:0 0 12px;letter-spacing:-.01em}
+.endpoint{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;background:var(--bg-soft);margin-bottom:18px;overflow:auto}
+.endpoint .badge{font-size:11px;padding:4px 7px}
+.endpoint .url{font-family:"JetBrains Mono",monospace;font-size:13px;white-space:nowrap}
+.endpoint .url .base{color:var(--muted)}
+.desc p{margin:0 0 10px}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.5px}
+
+.section{margin-top:30px}
+.section h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
+.params{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.param{display:grid;grid-template-columns:1fr 240px;gap:16px;padding:14px 16px;border-top:1px solid var(--border)}
+.param:first-child{border-top:none}
+.pname{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:13.5px}
+.ptype{color:var(--muted);font-size:12.5px;margin-left:6px}
+.preq{color:var(--req);font-size:11.5px;font-weight:600;margin-left:6px}
+.pdesc{color:var(--muted);font-size:13px;margin-top:4px}
+.pdesc code{background:var(--bg-soft);border:1px solid var(--border);border-radius:4px;padding:0 4px;font-size:12px;color:var(--text)}
+.param input{width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 9px;background:var(--bg);color:var(--text);font:13px "JetBrains Mono",monospace}
+.param input[type=file]{font-family:Inter,sans-serif;font-size:12px;padding:5px}
+.param input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+
+.responses .resp{border-top:1px solid var(--border)}
+.responses .resp:first-child{border-top:none}
+.resp summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;gap:10px;align-items:center}
+.resp summary::-webkit-details-marker{display:none}
+.resp summary::before{content:"›";color:var(--faint);transition:transform .15s;display:inline-block;width:10px}
+.resp[open] summary::before{transform:rotate(90deg)}
+.dotc{width:8px;height:8px;border-radius:50%}
+.resp .code{font-family:"JetBrains Mono",monospace;font-weight:600}
+.resp .rdesc{color:var(--muted)}
+.resp pre{margin:0 16px 14px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:12px;overflow:auto;font-size:12.5px}
+
+/* right panel */
+.rail{background:var(--bg-soft);border-left:1px solid var(--border);padding:24px 20px;position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto}
+.panel{background:var(--code-bg);border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;background:var(--code-head);padding:0 8px 0 4px}
+.tabs{display:flex}
+.tabs button{background:none;border:none;color:var(--code-muted);font:500 12.5px Inter,sans-serif;padding:11px 10px;cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.active{color:#fff;border-bottom-color:var(--accent)}
+.label{color:var(--code-muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:11px 12px}
+.icon-btn{background:none;border:1px solid #2d3040;color:var(--code-muted);border-radius:6px;font:500 11.5px Inter,sans-serif;padding:4px 8px;cursor:pointer}
+.icon-btn:hover{color:#fff}
+.panel pre{margin:0;padding:16px;color:var(--code-text);font-size:12.5px;line-height:1.65;overflow:auto;max-height:380px;white-space:pre}
+.tok-k{color:#c792ea}.tok-s{color:#c3e88d}.tok-n{color:#f78c6c}.tok-c{color:#676e95}.tok-p{color:#82aaff}
+.try{display:flex;justify-content:flex-end;padding:10px 12px;border-top:1px solid #262938;gap:8px;align-items:center}
+.try .hint{color:var(--code-muted);font-size:11.5px;margin-right:auto}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 16px;font:600 13px Inter,sans-serif;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.status-pill{font:600 11.5px "JetBrains Mono",monospace;padding:3px 8px;border-radius:999px}
+.base-url{margin-bottom:14px}
+.base-url label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.base-url input{width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--bg);color:var(--text);font:13px "JetBrains Mono",monospace}
+
+/* overview page */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:18px}
+.card{border:1px solid var(--border);border-radius:10px;padding:14px;display:block;color:var(--text)}
+.card:hover{border-color:var(--accent)}
+.card .t{font-weight:600;margin:6px 0 2px}
+.card .d{color:var(--muted);font-size:13px}
+table.st{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}
+table.st td,table.st th{border-top:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+table.st th{color:var(--muted);font-weight:600;font-size:12px}
+
+@media (max-width:1200px){.layout{grid-template-columns:240px minmax(0,1fr)} .rail{grid-column:2;position:static;height:auto;border-left:none;border-top:1px solid var(--border)}}
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  main{max-width:100vw}
+  .sidebar{position:fixed;left:0;top:56px;width:280px;transform:translateX(-100%);transition:transform .2s;z-index:15;box-shadow:0 0 30px rgba(0,0,0,.2)}
+  .sidebar.open{transform:none}
+  .rail{grid-column:1}
+  main{padding:24px 16px 40px}
+  .param{grid-template-columns:1fr}
+  .menu-btn{display:block}
+  .topbar nav,.search{display:none}
+  .rail{padding:16px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+  <div class="brand"><span class="dot"></span>Boopateway</div>
+  <nav><a href="#overview">Guides</a><a class="active" href="#create-person">API Reference</a></nav>
+  <div class="spacer"></div>
+  <input class="search" id="search" placeholder="Buscar endpoint…">
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main id="main"></main>
+  <aside class="rail" id="rail"></aside>
+</div>
+
+<script>
+const ENDPOINTS = [
+  {
+    id: "create-person", group: "Persons", title: "Create person", method: "POST", path: "/persons",
+    desc: [
+      "Cadastra uma nova pessoa. A foto é enviada ao serviço de reconhecimento facial parceiro, que devolve o identificador da pessoa no outro sistema; esse identificador é salvo junto ao registro.",
+      "A foto também é armazenada do nosso lado. O <code>code</code> de 4 dígitos é usado para confirmar pagamentos e, se não for enviado, assume <code>0000</code>."
+    ],
+    callout: "Requer o header <code>Idempotency-Key</code>. Reenviar a mesma chave com o mesmo payload devolve a resposta original.",
+    headers: [idemHeader()],
+    contentType: "multipart/form-data",
+    body: [
+      {name:"name", type:"string", required:true, desc:"Nome completo da pessoa (máx. 120 caracteres).", example:"Ana Souza"},
+      {name:"email", type:"string", required:true, desc:"E-mail único da pessoa.", example:"ana@example.com"},
+      {name:"code", type:"string", required:false, desc:"Código de 4 dígitos para confirmar pagamentos. Padrão <code>0000</code>.", example:"1234"},
+      {name:"image", type:"file", required:true, desc:"Foto do rosto. JPEG ou PNG, até 8 MiB."},
+    ],
+    responses: [
+      {code:201, desc:"Pessoa criada", body:{id:1,name:"Ana Souza",email:"a***@example.com",created_at:"2026-10-17T19:37:57.639Z"}},
+      {code:400, desc:"Dados inválidos", body:{error:"email inválido"}},
+      {code:409, desc:"E-mail ou pessoa já cadastrados", body:{error:"esta pessoa já está cadastrada"}},
+      {code:422, desc:"Idempotency-Key reutilizada com outro payload", body:{error:"Idempotency-Key já usada com outro payload"}},
+      {code:502, desc:"Falha no serviço de reconhecimento facial", body:{error:"falha ao comunicar com o serviço de reconhecimento facial"}},
+    ],
+  },
+  {
+    id: "get-person", group: "Persons", title: "Retrieve person", method: "GET", path: "/persons/{id}",
+    desc: ["Retorna as informações públicas de uma pessoa. Dados sensíveis (código, identificador no parceiro, foto) nunca são expostos e o e-mail vem mascarado."],
+    pathParams: [{name:"id", type:"integer", required:true, desc:"ID da pessoa no Boopateway.", example:"1"}],
+    responses: [
+      {code:200, desc:"OK", body:{id:1,name:"Ana Souza",email:"a***@example.com",created_at:"2026-10-17T19:37:57.639Z"}},
+      {code:404, desc:"Pessoa não encontrada", body:{error:"pessoa não encontrada"}},
+    ],
+  },
+  {
+    id: "create-payment", group: "Payments", title: "Create payment", method: "POST", path: "/payments",
+    desc: [
+      "Cria um pagamento a partir de um valor e da foto de quem está pagando. A foto é usada para identificar a pessoa no serviço de reconhecimento facial.",
+      "Se a pessoa for encontrada, a transação fica <code>pending_confirmation</code> e a resposta traz o <code>person_name</code>. Caso contrário, a transação é registrada como <code>cancel_notfound</code>."
+    ],
+    callout: "Requer o header <code>Idempotency-Key</code> para evitar cobranças duplicadas.",
+    headers: [idemHeader()],
+    contentType: "multipart/form-data",
+    body: [
+      {name:"amount_cents", type:"integer", required:true, desc:"Valor em centavos. Ex.: <code>1990</code> = R$ 19,90.", example:"1990"},
+      {name:"image", type:"file", required:true, desc:"Foto do rosto de quem paga. JPEG ou PNG, até 8 MiB."},
+    ],
+    responses: [
+      {code:201, desc:"Pessoa encontrada — aguardando confirmação", body:{transaction_id:"txn_U54HQB2Z2LALAXGBHDAQQCBJKZ",amount_cents:1990,status:"pending_confirmation",person_name:"Ana Souza"}},
+      {code:"201 ", desc:"Pessoa não encontrada", body:{transaction_id:"txn_X36J4Z4FKVGV6EYLARFZNKVFAG",amount_cents:1990,status:"cancel_notfound"}},
+      {code:400, desc:"Dados inválidos", body:{error:"amount_cents deve ser um inteiro positivo (em centavos)"}},
+      {code:502, desc:"Falha no serviço de reconhecimento facial", body:{error:"falha ao comunicar com o serviço de reconhecimento facial"}},
+    ],
+  },
+  {
+    id: "get-payment", group: "Payments", title: "Retrieve payment", method: "GET", path: "/payments/{id}",
+    desc: ["Consulta o status atual de uma transação."],
+    pathParams: [{name:"id", type:"string", required:true, desc:"ID da transação.", example:"txn_U54HQB2Z2LALAXGBHDAQQCBJKZ"}],
+    responses: [
+      {code:200, desc:"OK", body:{transaction_id:"txn_U54HQB2Z2LALAXGBHDAQQCBJKZ",amount_cents:1990,status:"confirmed"}},
+      {code:404, desc:"Transação não encontrada", body:{error:"transação não encontrada"}},
+    ],
+  },
+  {
+    id: "confirm-payment", group: "Payments", title: "Confirm payment", method: "POST", path: "/payments/{id}/confirm",
+    desc: [
+      "Confirma um pagamento pendente com o código de 4 dígitos que a pessoa cadastrou.",
+      "Após 3 códigos incorretos a transação passa para <code>cancel_invalid_code</code> e não pode mais ser confirmada."
+    ],
+    callout: "Requer o header <code>Idempotency-Key</code>. Cada nova tentativa de código deve usar uma chave nova.",
+    headers: [idemHeader()],
+    pathParams: [{name:"id", type:"string", required:true, desc:"ID da transação retornado em <b>Create payment</b>.", example:"txn_U54HQB2Z2LALAXGBHDAQQCBJKZ"}],
+    contentType: "application/json",
+    body: [{name:"code", type:"string", required:true, desc:"Código de 4 dígitos da pessoa.", example:"1234"}],
+    responses: [
+      {code:200, desc:"Pagamento confirmado", body:{transaction_id:"txn_U54HQB2Z2LALAXGBHDAQQCBJKZ",amount_cents:1990,status:"confirmed",person_name:"Ana Souza"}},
+      {code:404, desc:"Transação não encontrada", body:{error:"transação não encontrada"}},
+      {code:409, desc:"Transação não está pendente", body:{error:"transação não está pendente de confirmação"}},
+      {code:422, desc:"Código inválido", body:{error:"código inválido",status:"pending_confirmation",remaining_attempts:2}},
+    ],
+  },
+];
+
+function idemHeader(){ return {name:"Idempotency-Key", type:"string", required:true, desc:"Chave única por operação (ex.: UUID). Válida por 24h.", example:"auto"}; }
+
+const LANGS = ["cURL","Go","Node","Python"];
+const state = { lang: localGet("lang") || "cURL", values: {}, files: {} };
+const $ = s => document.querySelector(s);
+
+function localGet(k){ try{ return localStorage.getItem("bdocs:"+k) }catch{ return null } }
+function localSet(k,v){ try{ localStorage.setItem("bdocs:"+k,v) }catch{} }
+function baseURL(){ return (localGet("base") || location.origin).replace(/\/$/,""); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function newKey(){ return (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)); }
+
+/* ---------- sidebar ---------- */
+function renderSidebar(filter=""){
+  const groups = {};
+  ENDPOINTS.filter(e => (e.title+e.path).toLowerCase().includes(filter.toLowerCase()))
+    .forEach(e => (groups[e.group] ||= []).push(e));
+  const cur = location.hash.slice(1) || "overview";
+  let html = `<h4>Introdução</h4><a href="#overview" class="${cur==="overview"?"active":""}">Visão geral</a>`;
+  for (const [g, list] of Object.entries(groups)) {
+    html += `<h4>${g}</h4>` + list.map(e =>
+      `<a href="#${e.id}" class="${cur===e.id?"active":""}"><span>${e.title}</span><span class="badge ${e.method.toLowerCase()}">${e.method}</span></a>`).join("");
+  }
+  $("#sidebar").innerHTML = html;
+}
+
+/* ---------- overview ---------- */
+function renderOverview(){
+  $("#main").innerHTML = `
+    <div class="crumb">Introdução</div>
+    <h1>Boopateway API</h1>
+    <div class="desc">
+      <p>API de pagamentos com identificação facial. Cadastre pessoas com foto, crie pagamentos enviando o valor e a foto de quem paga e confirme com o código de 4 dígitos.</p>
+    </div>
+    <div class="section"><h3>Fluxo</h3>
+      <div class="params" style="padding:14px 16px">
+        <b>1.</b> <a href="#create-person">Create person</a> → <b>2.</b> <a href="#create-payment">Create payment</a> (status <code>pending_confirmation</code>) → <b>3.</b> <a href="#confirm-payment">Confirm payment</a> (status <code>confirmed</code>)
+      </div>
+    </div>
+    <div class="section"><h3>Idempotência</h3>
+      <div class="desc"><p>Todo <code>POST</code> exige o header <code>Idempotency-Key</code>. A chave vale por 24h por rota.</p></div>
+      <table class="st">
+        <tr><th>Situação</th><th>Resposta</th></tr>
+        <tr><td>Mesma chave, mesmo payload</td><td>Resposta original + header <code>Idempotent-Replayed: true</code></td></tr>
+        <tr><td>Mesma chave, payload diferente</td><td><code>422</code></td></tr>
+        <tr><td>Primeira requisição ainda processando</td><td><code>409</code></td></tr>
+        <tr><td>Erro <code>5xx</code></td><td>Chave liberada para nova tentativa</td></tr>
+      </table>
+    </div>
+    <div class="section"><h3>Status da transação</h3>
+      <table class="st">
+        <tr><th>Status</th><th>Significado</th></tr>
+        <tr><td><code>pending_confirmation</code></td><td>Pessoa encontrada, aguardando código</td></tr>
+        <tr><td><code>confirmed</code></td><td>Pagamento confirmado</td></tr>
+        <tr><td><code>cancel_notfound</code></td><td>Pessoa não reconhecida</td></tr>
+        <tr><td><code>cancel_invalid_code</code></td><td>3 códigos incorretos</td></tr>
+      </table>
+    </div>
+    <div class="section"><h3>Endpoints</h3>
+      <div class="cards">${ENDPOINTS.map(e => `
+        <a class="card" href="#${e.id}"><span class="badge ${e.method.toLowerCase()}">${e.method}</span>
+          <div class="t">${e.title}</div><div class="d mono">${e.path}</div></a>`).join("")}
+      </div>
+    </div>`;
+  $("#rail").innerHTML = baseURLBox() + `
+    <div class="panel"><div class="panel-head"><span class="label">Exemplo rápido</span></div>
+    <pre>${hl(`curl -X POST ${baseURL()}/persons \\\n  -H "Idempotency-Key: $(uuidgen)" \\\n  -F name="Ana Souza" \\\n  -F email=ana@example.com \\\n  -F code=1234 \\\n  -F image=@foto.jpg`)}</pre></div>`;
+  bindBaseURL();
+}
+
+/* ---------- endpoint page ---------- */
+function paramRows(list, kind, ep){
+  return list.map(p => {
+    const key = `${ep.id}:${kind}:${p.name}`;
+    const val = state.values[key] ?? (p.example === "auto" ? "" : "");
+    const input = p.type === "file"
+      ? `<input type="file" accept="image/jpeg,image/png" data-key="${key}">`
+      : `<input data-key="${key}" value="${esc(val)}" placeholder="${esc(p.example === "auto" ? "gerada automaticamente" : (p.example||""))}">`;
+    return `<div class="param"><div>
+        <span class="pname">${p.name}</span><span class="ptype">${p.type}</span>${p.required?'<span class="preq">required</span>':""}
+        <div class="pdesc">${p.desc}</div></div><div>${input}</div></div>`;
+  }).join("");
+}
+
+function statusColor(code){ const c = parseInt(code); return c<300?"var(--ok)":c<500?"var(--warn)":"var(--err)"; }
+
+function renderEndpoint(ep){
+  const m = ep.method.toLowerCase();
+  $("#main").innerHTML = `
+    <div class="crumb">${ep.group}</div>
+    <h1>${ep.title}</h1>
+    <div class="endpoint"><span class="badge ${m}">${ep.method}</span>
+      <span class="url"><span class="base">${esc(baseURL())}</span>${esc(ep.path)}</span></div>
+    <div class="desc">${ep.desc.map(d=>`<p>${d}</p>`).join("")}</div>
+    ${ep.callout?`<div class="callout">${ep.callout}</div>`:""}
+    ${ep.pathParams?`<div class="section"><h3>Path params</h3><div class="params">${paramRows(ep.pathParams,"path",ep)}</div></div>`:""}
+    ${ep.headers?`<div class="section"><h3>Headers</h3><div class="params">${paramRows(ep.headers,"header",ep)}</div></div>`:""}
+    ${ep.body?`<div class="section"><h3>Body params <span style="text-transform:none;letter-spacing:0;color:var(--faint)">· ${ep.contentType}</span></h3><div class="params">${paramRows(ep.body,"body",ep)}</div></div>`:""}
+    <div class="section"><h3>Responses</h3><div class="params responses">
+      ${ep.responses.map((r,i)=>`<details class="resp" ${i===0?"open":""}><summary>
+        <span class="dotc" style="background:${statusColor(r.code)}"></span><span class="code">${String(r.code).trim()}</span><span class="rdesc">${r.desc}</span></summary>
+        <pre>${hl(JSON.stringify(r.body,null,2))}</pre></details>`).join("")}
+    </div></div>`;
+
+  document.querySelectorAll("#main input[data-key]").forEach(inp => {
+    if (inp.type === "file") {
+      inp.addEventListener("change", () => { state.files[inp.dataset.key] = inp.files[0]; renderCode(ep); });
+    } else {
+      inp.addEventListener("input", () => { state.values[inp.dataset.key] = inp.value; renderCode(ep); });
+    }
+  });
+
+  const ok = ep.responses[0];
+  $("#rail").innerHTML = baseURLBox() + `
+    <div class="panel">
+      <div class="panel-head"><div class="tabs" id="langTabs">${LANGS.map(l=>`<button data-lang="${l}" class="${l===state.lang?"active":""}">${l}</button>`).join("")}</div>
+        <button class="icon-btn" id="copyBtn">Copiar</button></div>
+      <pre id="codeBlock"></pre>
+      <div class="try"><span class="hint">Preencha os campos ao lado</span><button class="btn" id="tryBtn">Try It!</button></div>
+    </div>
+    <div class="panel" id="respPanel">
+      <div class="panel-head"><span class="label">Response</span><span id="respStatus" style="padding-right:6px"></span></div>
+      <pre id="respBody">${hl(JSON.stringify(ok.body,null,2))}</pre>
+    </div>`;
+
+  $("#langTabs").addEventListener("click", e => {
+    const l = e.target.dataset.lang; if (!l) return;
+    state.lang = l; localSet("lang", l);
+    document.querySelectorAll("#langTabs button").forEach(b => b.classList.toggle("active", b.dataset.lang===l));
+    renderCode(ep);
+  });
+  $("#copyBtn").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(codeFor(ep, state.lang)); $("#copyBtn").textContent="Copiado!"; setTimeout(()=>$("#copyBtn").textContent="Copiar",1200);} catch {}
+  });
+  $("#tryBtn").addEventListener("click", () => tryIt(ep));
+  bindBaseURL();
+  renderCode(ep);
+}
+
+function baseURLBox(){
+  return `<div class="base-url"><label>Base URL</label><input id="baseUrl" value="${esc(baseURL())}"></div>`;
+}
+function bindBaseURL(){
+  const el = $("#baseUrl"); if (!el) return;
+  el.addEventListener("change", () => { localSet("base", el.value.trim()); route(); });
+}
+
+/* ---------- request building ---------- */
+function v(ep, kind, name, fallback){
+  const val = state.values[`${ep.id}:${kind}:${name}`];
+  return val !== undefined && val !== "" ? val : fallback;
+}
+function reqModel(ep){
+  let path = ep.path;
+  (ep.pathParams||[]).forEach(p => path = path.replace(`{${p.name}}`, v(ep,"path",p.name,p.example)));
+  const headers = {};
+  (ep.headers||[]).forEach(h => headers[h.name] = v(ep,"header",h.name, h.example==="auto" ? "<uuid>" : h.example));
+  const fields = (ep.body||[]).map(f => ({...f, value: f.type==="file"
+    ? (state.files[`${ep.id}:body:${f.name}`]?.name || "foto.jpg")
+    : v(ep,"body",f.name,f.example)}));
+  return { method: ep.method, url: baseURL()+path, headers, fields, json: ep.contentType==="application/json", multipart: ep.contentType==="multipart/form-data" };
+}
+
+function codeFor(ep, lang){
+  const r = reqModel(ep);
+  const hdr = Object.entries(r.headers);
+  if (lang === "cURL") {
+    const parts = [`curl -X ${r.method} ${r.url}`];
+    hdr.forEach(([k,val]) => parts.push(`-H "${k}: ${val==="<uuid>"?"$(uuidgen)":val}"`));
+    if (r.multipart) r.fields.forEach(f => parts.push(f.type==="file" ? `-F ${f.name}=@${f.value}` : `-F ${f.name}="${f.value}"`));
+    if (r.json) { parts.push(`-H "Content-Type: application/json"`); parts.push(`-d '${JSON.stringify(Object.fromEntries(r.fields.map(f=>[f.name,f.value])))}'`); }
+    return parts.join(" \\\n  ");
+  }
+  if (lang === "Node") {
+    let s = "";
+    if (r.multipart) {
+      s += `import { readFile } from "node:fs/promises";\n\nconst form = new FormData();\n`;
+      r.fields.forEach(f => s += f.type==="file"
+        ? `form.append("${f.name}", new Blob([await readFile("${f.value}")]), "${f.value}");\n`
+        : `form.append("${f.name}", "${f.value}");\n`);
+      s += "\n";
+    }
+    s += `const res = await fetch("${r.url}", {\n  method: "${r.method}",\n`;
+    const h = hdr.map(([k,val]) => `    "${k}": ${val==="<uuid>"?"crypto.randomUUID()":`"${val}"`}`);
+    if (r.json) h.push(`    "Content-Type": "application/json"`);
+    if (h.length) s += `  headers: {\n${h.join(",\n")}\n  },\n`;
+    if (r.multipart) s += `  body: form,\n`;
+    if (r.json) s += `  body: JSON.stringify(${JSON.stringify(Object.fromEntries(r.fields.map(f=>[f.name,f.value])))}),\n`;
+    s += `});\n\nconsole.log(res.status, await res.json());`;
+    return s;
+  }
+  if (lang === "Python") {
+    let s = `import uuid\nimport requests\n\n`;
+    const h = hdr.map(([k,val]) => `    "${k}": ${val==="<uuid>"?"str(uuid.uuid4())":`"${val}"`},`);
+    s += `res = requests.${r.method.toLowerCase()}(\n    "${r.url}",\n`;
+    if (h.length) s += `    headers={\n${h.map(x=>"    "+x).join("\n")}\n    },\n`;
+    if (r.multipart) {
+      const data = r.fields.filter(f=>f.type!=="file").map(f=>`"${f.name}": "${f.value}"`).join(", ");
+      const files = r.fields.filter(f=>f.type==="file").map(f=>`"${f.name}": open("${f.value}", "rb")`).join(", ");
+      if (data) s += `    data={${data}},\n`;
+      if (files) s += `    files={${files}},\n`;
+    }
+    if (r.json) s += `    json=${JSON.stringify(Object.fromEntries(r.fields.map(f=>[f.name,f.value])))},\n`;
+    s += `)\n\nprint(res.status_code, res.json())`;
+    return s;
+  }
+  // Go
+  let s = `package main\n\nimport (\n`;
+  const imps = ['"fmt"','"io"','"net/http"'];
+  if (r.multipart) imps.push('"bytes"','"mime/multipart"','"os"');
+  if (r.json) imps.push('"strings"');
+  if (hdr.some(([,val])=>val==="<uuid>")) imps.push('"crypto/rand"');
+  s += imps.sort().map(i=>"\t"+i).join("\n") + `\n)\n\nfunc main() {\n`;
+  let body = "nil";
+  if (r.multipart) {
+    s += `\tvar buf bytes.Buffer\n\tw := multipart.NewWriter(&buf)\n`;
+    r.fields.forEach(f => s += f.type==="file"
+      ? `\timg, _ := os.ReadFile("${f.value}")\n\tfw, _ := w.CreateFormFile("${f.name}", "${f.value}")\n\tfw.Write(img)\n`
+      : `\tw.WriteField("${f.name}", "${f.value}")\n`);
+    s += `\tw.Close()\n\n`; body = "&buf";
+  }
+  if (r.json) body = `strings.NewReader(\`${JSON.stringify(Object.fromEntries(r.fields.map(f=>[f.name,f.value])))}\`)`;
+  s += `\treq, _ := http.NewRequest("${r.method}", "${r.url}", ${body})\n`;
+  hdr.forEach(([k,val]) => s += `\treq.Header.Set("${k}", ${val==="<uuid>"?"rand.Text()":`"${val}"`})\n`);
+  if (r.multipart) s += `\treq.Header.Set("Content-Type", w.FormDataContentType())\n`;
+  if (r.json) s += `\treq.Header.Set("Content-Type", "application/json")\n`;
+  s += `\n\tres, err := http.DefaultClient.Do(req)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tdefer res.Body.Close()\n\tout, _ := io.ReadAll(res.Body)\n\tfmt.Println(res.Status, string(out))\n}`;
+  return s;
+}
+
+function renderCode(ep){ const el = $("#codeBlock"); if (el) el.innerHTML = hl(codeFor(ep, state.lang)); }
+
+/* ---------- try it ---------- */
+async function tryIt(ep){
+  const btn = $("#tryBtn"); btn.disabled = true; btn.textContent = "Enviando…";
+  const r = reqModel(ep);
+  const headers = {};
+  Object.entries(r.headers).forEach(([k,val]) => headers[k] = val==="<uuid>" ? newKey() : val);
+  let body;
+  if (r.multipart) {
+    body = new FormData();
+    for (const f of r.fields) {
+      if (f.type === "file") { const file = state.files[`${ep.id}:body:${f.name}`]; if (file) body.append(f.name, file); }
+      else if (f.value !== undefined && f.value !== "") body.append(f.name, f.value);
+    }
+  }
+  if (r.json) { headers["Content-Type"] = "application/json"; body = JSON.stringify(Object.fromEntries(r.fields.map(f=>[f.name,f.value]))); }
+  try {
+    const res = await fetch(r.url, { method: r.method, headers, body });
+    const text = await res.text();
+    let pretty = text; try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch {}
+    const replay = res.headers.get("Idempotent-Replayed") ? " · replay" : "";
+    $("#respStatus").innerHTML = `<span class="status-pill" style="color:${statusColor(res.status)};background:#ffffff10">${res.status}${replay}</span>`;
+    $("#respBody").innerHTML = hl(pretty);
+  } catch (err) {
+    $("#respStatus").innerHTML = `<span class="status-pill" style="color:var(--err)">erro</span>`;
+    $("#respBody").textContent = String(err);
+  } finally { btn.disabled = false; btn.textContent = "Try It!"; }
+}
+
+/* ---------- tiny highlighter ---------- */
+function hl(src){
+  return esc(src)
+    .replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;|"[^"\n]*"|'[^'\n]*'|`[^`]*`)/g, '<span class="tok-s">$1</span>')
+    .replace(/\b(curl|import|from|const|await|new|package|func|var|if|defer|return|print|res)\b(?![^<]*<\/span>)/g, '<span class="tok-k">$1</span>')
+    .replace(/(^|\s)(-[A-Za-z]|-X)(?=\s)/g, '$1<span class="tok-p">$2</span>')
+    .replace(/\b(\d+)\b(?![^<]*<\/span>)/g, '<span class="tok-n">$1</span>');
+}
+
+/* ---------- router ---------- */
+function route(){
+  const id = location.hash.slice(1) || "overview";
+  const ep = ENDPOINTS.find(e => e.id === id);
+  ep ? renderEndpoint(ep) : renderOverview();
+  renderSidebar($("#search").value);
+  $("#sidebar").classList.remove("open");
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+$("#search").addEventListener("input", e => renderSidebar(e.target.value));
+$("#menuBtn").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+route();
+</script>
+</body>
+</html>
