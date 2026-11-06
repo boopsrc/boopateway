@@ -381,6 +381,26 @@ Não exigem `Idempotency-Key`.
 
 Pelo portal, as mesmas rotas ficam em `http://localhost:31801/api/admin/...` (proxy para a API).
 
+#### `POST /admin/login`: obter token com a senha de admin
+
+Única rota `/admin/*` sem `Authorization`. Troca a senha (`ADMIN_PASSWORD`) por um token admin.
+Com `BOOP_CLIENT_ID`/`BOOP_CLIENT_SECRET` definidos, o token é gerado na hora no booprecognition
+(`POST /oauth/token`, `client_credentials`); sem eles, devolve o token fixo (`ADMIN_BOOP_TOKEN`,
+padrão `BOOP_TOKEN`). Falha ao gerar → `502`.
+
+```bash
+curl -X POST http://localhost:8080/admin/login \
+  -H "Content-Type: application/json" -d '{"password":"sua_senha"}'
+```
+
+**200 OK** → `{ "token": "eyJhbGciOi..." }`
+
+| Status | Corpo | Quando |
+|---|---|---|
+| 400 | `{"error":"informe a senha"}` | body ausente/vazio |
+| 401 | `{"error":"senha inválida"}` | senha errada (resposta atrasada em 1s) |
+| 503 | `{"error":"login por senha desabilitado (defina ADMIN_PASSWORD)"}` | `ADMIN_PASSWORD` não definido |
+
 #### `GET /admin/session`: validar token
 
 ```bash

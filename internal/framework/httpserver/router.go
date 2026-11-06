@@ -15,6 +15,7 @@ type Handlers struct {
 	Person  *handler.PersonHandler
 	Payment *handler.PaymentHandler
 	Admin   *handler.AdminHandler
+	Auth    *handler.AuthHandler
 }
 
 func NewRouter(h Handlers, idempotency repository.IdempotencyRepository, logs repository.RequestLogRepository) *gin.Engine {
@@ -35,6 +36,9 @@ func NewRouter(h Handlers, idempotency repository.IdempotencyRepository, logs re
 	payments.POST("", idem, h.Payment.Create)
 	payments.GET("/:id", h.Payment.Get)
 	payments.POST("/:id/confirm", idem, h.Payment.Confirm)
+
+	// Login do portal por senha: devolve o token admin configurado no servidor.
+	r.POST("/admin/login", h.Auth.Login)
 
 	// Rotas do portal administrativo: token validado no serviço de reconhecimento facial.
 	admin := r.Group("/admin", middleware.AdminToken())

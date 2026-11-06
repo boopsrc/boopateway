@@ -10,13 +10,18 @@ services:
       # booprecognition roda no host, porta 31900
       BOOP_BASE_URL: http://host.docker.internal:31900
       BOOP_TOKEN: ${BOOP_TOKEN:?defina BOOP_TOKEN no arquivo .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-teste123}
+      ADMIN_BOOP_TOKEN: ${ADMIN_BOOP_TOKEN:-}
+      BOOP_CLIENT_ID: ${BOOP_CLIENT_ID:-}
+      BOOP_CLIENT_SECRET: ${BOOP_CLIENT_SECRET:-}
+      BOOP_ADMIN_SCOPE: ${BOOP_ADMIN_SCOPE:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - boopateway-data:/data
 
   # Portal administrativo: pessoas, transações e logs de requisições da API.
-  # Login com o token do booprecognition.
+  # Login com a senha ADMIN_PASSWORD (o servidor entrega o token do booprecognition).
   portal:
     image: boopateway:latest
     container_name: boopateway-portal

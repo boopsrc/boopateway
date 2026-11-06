@@ -28,6 +28,17 @@ func main() {
 	}
 }
 
+// adminTokenIssuer gera um token novo via OAuth quando BOOP_CLIENT_ID/SECRET estão definidos;
+// caso contrário entrega o token fixo (ADMIN_BOOP_TOKEN ou BOOP_TOKEN).
+func adminTokenIssuer(cfg config.Config, c *booprecognition.Client) handler.TokenIssuer {
+	if cfg.BoopClientID != "" && cfg.BoopClientSecret != "" {
+		return func(ctx context.Context) (string, error) {
+			return c.IssueToken(ctx, cfg.BoopClientID, cfg.BoopClientSecret, cfg.BoopAdminScope)
+		}
+	}
+	return func(context.Context) (string, error) { return cfg.AdminBoopToken, nil }
+}
+
 func run() error {
 	cfg, err := config.Load()
 	if err != nil {
@@ -80,6 +91,7 @@ func run() error {
 		Person:  handler.NewPersonHandler(createPerson, getPerson),
 		Payment: handler.NewPaymentHandler(createPayment, getPayment, confirmPayment),
 		Admin:   handler.NewAdminHandler(validateAdmin, listPersons, personImage, deletePerson, personTransactions, searchTransactions, listRequestLogs),
+		Auth:    handler.NewAuthHandler(cfg.AdminPassword, adminTokenIssuer(cfg, boopClient)),
 	}, idempotency, requestLogs)
 
 	srv := &http.Server{Addr: cfg.Addr, Handler: router, ReadHeaderTimeout: 10 * time.Second}

@@ -135,9 +135,9 @@ select{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 1
 <section class="login" id="loginView">
   <form class="login-card" id="loginForm">
     <h1>Entrar</h1>
-    <p>Informe o token da API de reconhecimento facial. Ele é validado no serviço antes de liberar o acesso.</p>
-    <label for="token">Token</label>
-    <textarea id="token" placeholder="eyJhbGciOi..." autocomplete="off" spellcheck="false" required></textarea>
+    <p>Informe a senha de administrador. O servidor gera o token de acesso, que é validado no serviço de reconhecimento facial.</p>
+    <label for="password">Senha</label>
+    <input type="password" id="password" autocomplete="current-password" required>
     <div class="error" id="loginError"></div>
     <button class="btn primary" type="submit" id="loginBtn">Entrar</button>
   </form>
@@ -316,6 +316,12 @@ async function login(token){
   await loadPage();
 }
 
+async function fetchToken(password){
+  const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+  if (!res.ok) throw new Error(res.status === 401 ? "Senha inválida." : await errorOf(res));
+  return (await res.json()).token;
+}
+
 function logout(message){
   state.token = null; store("token", null);
   freeBlobs();
@@ -325,7 +331,7 @@ function logout(message){
   document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === "persons"));
   show(false);
   $("#loginError").textContent = message || "";
-  $("#token").value = "";
+  $("#password").value = "";
 }
 
 let currentTab = "persons";
@@ -592,7 +598,7 @@ $("#loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   const btn = $("#loginBtn"); btn.disabled = true; btn.textContent = "Validando…";
   $("#loginError").textContent = "";
-  try { await login($("#token").value.trim()); }
+  try { await login(await fetchToken($("#password").value)); }
   catch (err) { state.token = null; $("#loginError").textContent = err.message === "401" ? "" : err.message; }
   finally { btn.disabled = false; btn.textContent = "Entrar"; }
 });

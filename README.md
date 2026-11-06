@@ -103,6 +103,10 @@ Docs: http://localhost:31800/docs
 | `BOOP_TOKEN` | — | Token Bearer da API de reconhecimento facial (**obrigatório**) |
 | `BOOP_BASE_URL` | `http://localhost:8000` | URL da API de reconhecimento facial |
 | `BOOP_SEARCH_PATH` | `/identify` | Rota usada para buscar a pessoa pela foto (não cadastra rostos desconhecidos; `null` = não encontrada) |
+| `ADMIN_PASSWORD` | `teste123` (no docker-compose) | Senha do login do portal; vazio desabilita `POST /admin/login` |
+| `ADMIN_BOOP_TOKEN` | `BOOP_TOKEN` | Token fixo entregue ao portal após o login (quando não há OAuth) |
+| `BOOP_CLIENT_ID` / `BOOP_CLIENT_SECRET` | — | Credenciais OAuth: cada login gera um token novo em `POST /oauth/token` |
+| `BOOP_ADMIN_SCOPE` | — | Scopes pedidos no token do portal (vazio = padrão do cliente) |
 | `ADDR` | `:8080` | Endereço do servidor HTTP |
 | `DB_PATH` | `data/boopateway.db` | Arquivo SQLite |
 | `IMAGE_DIR` | `data/images` | Pasta onde as fotos das pessoas são salvas |
@@ -117,7 +121,8 @@ separado (`boopateway-portal`) e repassa as chamadas `/api/*` para a API.
 
 ![Login do portal](docs/images/portal-login.png)
 
-- **Login**: informe o token da API booprecognition. Ele é validado no booprecognition
+- **Login**: informe a senha `ADMIN_PASSWORD` e clique em **Entrar**; a API (`POST /admin/login`)
+  devolve o token admin configurado no servidor (`ADMIN_BOOP_TOKEN` ou `BOOP_TOKEN`). Ele é validado no booprecognition
   (`POST /identify` sem imagem: 401 = inválido) antes de liberar qualquer dado. O token fica só
   na aba (`sessionStorage`) e some ao clicar em **Sair** ou fechar a aba.
 - **Lista**: foto, nome, e-mail, ID, ID no parceiro e data de cadastro, com paginação e filtro.
